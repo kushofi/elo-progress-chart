@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ELO Progress Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 40px;
+      background: #f9fafb;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+    }
+    canvas {
+      max-width: 100%;
+      height: 600px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ELO Progress of 32 Users</h1>
+  <canvas id="eloChart"></canvas>
+
+  <script>
+    const ctx = document.getElementById("eloChart").getContext("2d");
+
+    function createChart(labels, datasets) {
+      new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: { display: true, text: "ELO Ratings Over Time" },
+          },
+          scales: {
+            x: { title: { display: true, text: "Date" } },
+            y: { title: { display: true, text: "ELO Rating" } },
+          },
+        },
+      });
+    }
+
+    // Fetch CSV directly from same directory
+    Papa.parse("elo_data.csv", {
+      download: true,
+      header: true,
+      dynamicTyping: true,
+      complete: (results) => {
+        const data = results.data;
+        const labels = data.map((row) => row["Date"]);
+        const users = Object.keys(data[0]).filter((k) => k !== "Date");
+
+        const datasets = users.map((user, i) => {
+          const color = `hsl(${(i * 360) / users.length}, 70%, 50%)`;
+          return {
+            label: user,
+            data: data.map((row) => row[user]),
+            borderColor: color,
+            borderWidth: 1.5,
+            fill: false,
+            tension: 0.2,
+          };
+        });
+
+        createChart(labels, datasets);
+      },
+    });
+  </script>
+</body>
+</html>
